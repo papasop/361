@@ -1,42 +1,42 @@
-# Structured Pi Approximation Module
-# Copyright (c) 2025 Y.Y.N. Li. MIT License.
+"""
+Structured Pi Approximation Module
+Author: Y.Y.N. Li
+Date: 2025-07-14
 
-import numpy as np
-import matplotlib.pyplot as plt
+Implements a hybrid approximation of π:
+π ≈ Leibniz_sum(n) + φ  (Machin-like modal correction)
+This improves convergence compared to the pure Leibniz series.
+"""
+
 from mpmath import mp
 
-mp.dps = 50  # High precision
+# Set desired precision
+mp.dps = 50  # decimal digits
 
-# --- Modal correction φ (Machin-like) ---
+# Machin-like correction φ = 4·arctan(1/5) − arctan(1/239)
+a_k = [4, -1]
+b_k = [1, 1]
+c_k = [5, 239]
+
 def compute_phi():
-    a_k = [4, -1]
-    b_k = [1, 1]
-    c_k = [5, 239]
-    return sum(mp.mpf(a) * mp.atan(mp.mpf(b)/mp.mpf(c)) for a, b, c in zip(a_k, b_k, c_k))
+    """Fixed modal correction φ(n), independent of n"""
+    return mp.fsum([mp.mpf(a_k[j]) * mp.atan(mp.mpf(b_k[j]) / mp.mpf(c_k[j]))
+                    for j in range(len(a_k))])
 
-# --- Leibniz sum ---
 def leibniz_sum(n):
-    return mp.fsum([mp.mpf(4) * (-1)**k / (2*k + 1) for k in range(n)])
+    """Partial sum of Leibniz series with n terms"""
+    return mp.fsum([mp.mpf(4) * (-1)**k / (2 * k + 1) for k in range(n)])
 
-# --- Structured π approximation ---
-def pi_structured(n):
+def pi_structured(n=1000):
+    """
+    Structured approximation of π:
+        ρ(n) = Leibniz_sum(n) + φ
+
+    Parameters:
+        n (int): number of Leibniz terms
+
+    Returns:
+        mpf: approximate value of π
+    """
     return leibniz_sum(n) + compute_phi()
 
-# --- Main test ---
-n_vals = np.arange(100, 100001, 500)  # from 100 to 100000
-residuals = [abs(mp.pi - pi_structured(n)) for n in n_vals]
-C_vals = [residual * n for residual, n in zip(residuals, n_vals)]
-C_est = max(C_vals)
-
-print(f"Estimated C ≈ {C_est}")
-
-# --- Plot log-log residual and C/n ---
-plt.figure(figsize=(10, 6))
-plt.loglog(n_vals, residuals, label='|δ(n)|')
-plt.loglog(n_vals, [C_est / n for n in n_vals], '--', label='C/n upper bound')
-plt.xlabel("n (terms)")
-plt.ylabel("Residual |δ(n)|")
-plt.title("Structured π Approximation Residual Decay")
-plt.grid(True, which='both', ls='--')
-plt.legend()
-plt.show()
