@@ -1,47 +1,44 @@
 """
-Structured Pi Approximation Module (Adjustable)
+Structured Pi Approximation Module 
 Author: Y.Y.N. Li
 Date: 2025-07-14
 
-π ≈ Leibniz(n) + α · φ
-- Leibniz(n): partial alternating series
-- φ: modal correction (Machin-like)
-- α: correction weight parameter
+This module approximates π using a structured formula:
+    π ≈ Leibniz(n) + α(n) * φ
+where:
+    - Leibniz(n): partial sum of the Leibniz series
+    - φ: constant Machin-like correction term
+    - α(n): decay factor, e.g. α(n) = 1/n^p (p ∈ (0.5, 2.0))
 
-Residual ≈ O(1/n), tunable via α
+This improves convergence without overcorrecting.
 """
 
 from mpmath import mp, mpf, fsum, atan
 
-mp.dps = 50  # high precision
+# Set default decimal precision
+mp.dps = 50
 
-# --- Modal correction φ (Machin-like) ---
+# --- Constant Machin-like correction φ ---
 def compute_phi():
-    a_k = [4, -1]
-    b_k = [1, 1]
-    c_k = [5, 239]
-    phi = mpf(0)
-    for a, b, c in zip(a_k, b_k, c_k):
-        phi += a * atan(mpf(b) / mpf(c))
-    return phi
+    return 4 * atan(mpf(1) / 5) - atan(mpf(1) / 239)
 
 # --- Leibniz partial sum ---
 def leibniz_sum(n):
-    return fsum([mpf(4) * (-1)**k / (2 * k + 1) for k in range(n)])
+    return fsum([mpf(4) * (-1)**k / (2*k + 1) for k in range(n)])
 
-# --- Structured approximation with α φ ---
-def pi_structured(n=1000, alpha=1.0):
+# --- Structured π approximation with α(n) decay ---
+def pi_structured(n=1000, p=1.0):
     """
-    Structured π approximation:
-        π ≈ Leibniz(n) + α · φ
+    Approximates π using structured series:
+        π ≈ Leibniz(n) + α(n) * φ
 
     Parameters:
-        n (int): terms in the Leibniz series
-        alpha (float): scaling factor for φ
+        n (int): Number of Leibniz terms
+        p (float): Decay exponent for α(n) = 1 / n^p
 
     Returns:
-        mpf: approximation of π
+        mpf: Approximate value of π
     """
-    phi = compute_phi()
-    return leibniz_sum(n) + mpf(alpha) * phi
+    alpha = mpf(1) / n**p
+    return leibniz_sum(n) + alpha * compute_phi()
 
