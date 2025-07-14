@@ -8,34 +8,8 @@ This module demonstrates the conjecture's numerical verification by computing th
 """
 
 from mpmath import mp, atan, mpf, pi, fsum, abs
-from itertools import product
 
 mp.dps = 50  # Set precision for high-accuracy computations
-
-def generate_phi_candidates(N=2, max_den=300, max_coeff=20, tol=1e-10):
-    """
-    Automatically search for combinations of φ(n) to approximate π and return the best residual combination.
-    """
-    best_phi = None
-    best_residual = mpf('inf')
-    best_combo = None
-
-    for coeffs in product(range(1, max_coeff+1), repeat=N):
-        for denoms in product(range(1, max_den+1), repeat=N):
-            a_k = coeffs
-            c_k = denoms
-            try:
-                phi = fsum([mpf(a) * atan(mpf(1)/mpf(c)) for a, c in zip(a_k, c_k)])
-                residual = abs(pi - phi)
-                if residual < best_residual:
-                    best_phi = phi
-                    best_combo = list(zip(a_k, [1]*N, c_k))  # a_k, b_k=1, c_k
-                    best_residual = residual
-                    if residual < tol:
-                        return best_phi, best_combo, residual
-            except:
-                continue
-    return best_phi, best_combo, best_residual
 
 def leibniz_sum(n):
     """
@@ -63,21 +37,29 @@ def compute_residual(n, a_k=None, b_k=None, c_k=None):
     approx = structured_pi(n, a_k, b_k, c_k)
     return abs(pi - approx)
 
-# Example usage for submission test
+def verify_bound(n_values, deltas):
+    """
+    Estimate C as max |delta(n)| * n and check if bound holds.
+    """
+    C_estimates = [abs(d) * mpf(m) for m, d in zip(n_values, deltas)]
+    C = max(C_estimates)
+    return C
+
+# Example usage and verification
 if __name__ == "__main__":
-    mp.dps = 50  # Set high precision
     n_values = [10, 100, 500, 1000, 5000, 10000]  # Test n values
 
     print("Structured π Approximation Test (Default Machin-like Coefficients)")
+    deltas = []
     for n in n_values:
         approx = structured_pi(n)
         residual = compute_residual(n)
+        deltas.append(residual)
         print(f"n = {n} | Structured π = {approx}")
         print(f"          | Residual = {residual}")
 
-    # Optional: Search for better modal combinations
-    # best_phi, best_combo, best_residual = generate_phi_candidates(N=2)
-    # print("\nBest Modal Combination Found:")
-    # print(f"Best φ = {best_phi}")
-    # print(f"Best Residual = {best_residual}")
-    # print(f"Best Combo (a_k, b_k, c_k): {best_combo}")
+    # Estimate C for bound |δ(n)| < C / n
+    C = verify_bound(n_values, deltas)
+    print("\nEstimated C for bound |δ(n)| < C / n:", C)
+
+    # Note: For ε > 0 verification, extend n_values to larger ranges (e.g., 10^6+) and check |δ(n)| * n^(1+ε)
