@@ -40,4 +40,9 @@ def pi_structured(n):
     leibniz_ref = leibniz_sum(n_ref)
     phi = machin_phi() - leibniz_ref
     return leibniz_n + phi
+# Add to end of pi_structured.py
+n_values = [10, 100, 500, 1000, 5000, 10000]
+deltas = [compute_residual(n) for n in n_values]
+C = max(abs(d) * mpf(m) for m, d in zip(n_values, deltas))
+print("\nEstimated C:", C)
 
