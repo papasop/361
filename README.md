@@ -25,6 +25,18 @@ print("True π:", mp.pi)
 print("Residual:", abs(mp.pi - pi_structured()))
 
 
+
+
+
+!git clone https://github.com/papasop/361.git
+%cd 361
+!python3 test_pi_structured.py
+
+
+
+
+
+
 MIT License
 
 Copyright (c) 2025 Y.Y.N. Li
