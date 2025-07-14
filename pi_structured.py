@@ -1,24 +1,21 @@
 """
-Structured Pi Approximation Module
+Structured Pi Approximation Module (Adjustable)
 Author: Y.Y.N. Li
 Date: 2025-07-14
 
-This module approximates π using a structured formula:
-    π ≈ Leibniz(n) + φ(n)
-where:
-    - Leibniz(n): partial sum of the alternating series
-    - φ(n): optional modal correction term (Machin-like)
+π ≈ Leibniz(n) + α · φ
+- Leibniz(n): partial alternating series
+- φ: modal correction (Machin-like)
+- α: correction weight parameter
 
-Residual ≈ O(1/n) or better, depending on φ(n).
+Residual ≈ O(1/n), tunable via α
 """
 
 from mpmath import mp, mpf, fsum, atan
 
-# Set default decimal precision
-mp.dps = 50
+mp.dps = 50  # high precision
 
-# --- Modal correction φ(n) using Machin-like formula ---
-# Default: φ(n) = 4*arctan(1/5) - arctan(1/239)
+# --- Modal correction φ (Machin-like) ---
 def compute_phi():
     a_k = [4, -1]
     b_k = [1, 1]
@@ -30,19 +27,21 @@ def compute_phi():
 
 # --- Leibniz partial sum ---
 def leibniz_sum(n):
-    return fsum([mpf(4) * (-1)**k / (2*k + 1) for k in range(n)])
+    return fsum([mpf(4) * (-1)**k / (2 * k + 1) for k in range(n)])
 
-# --- Structured approximation ---
-def pi_structured(n=1000):
+# --- Structured approximation with α φ ---
+def pi_structured(n=1000, alpha=1.0):
     """
-    Structured approximation of π:
-        ρ(n) = Leibniz(n) + φ
+    Structured π approximation:
+        π ≈ Leibniz(n) + α · φ
 
     Parameters:
-        n (int): Number of terms in Leibniz series
+        n (int): terms in the Leibniz series
+        alpha (float): scaling factor for φ
 
     Returns:
-        mpf: Approximate value of π
+        mpf: approximation of π
     """
-    return leibniz_sum(n) + compute_phi()
+    phi = compute_phi()
+    return leibniz_sum(n) + mpf(alpha) * phi
 
