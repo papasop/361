@@ -42,7 +42,3 @@ def pi_structured(n=1000, p=1.0):
     alpha = mpf(1) / n**p
     return leibniz_sum(n) + alpha * compute_phi()
 
-n_values = [10, 100, 500, 1000, 5000, 10000]
-deltas = [compute_residual(n) for n in n_values]
-C = max(abs(d) * mpf(m) for m, d in zip(n_values, deltas))
-print("\nEstimated C:", C)
