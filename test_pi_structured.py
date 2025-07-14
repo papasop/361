@@ -1,12 +1,14 @@
-from mpmath import mp
+# Test for Structured Pi Approximation
+# Author: Y.Y.N. Li
+
 from pi_structured import pi_structured
+from mpmath import mp
 
-mp.dps = 50  # 精度设置
+mp.dps = 50  # Set precision
 
-approx_pi = pi_structured(n=1000)
-true_pi = mp.pi
-residual = abs(true_pi - approx_pi)
+n = 1000
+approx_pi = pi_structured(n)
 
-print("Structured π:", approx_pi)
-print("True π:", true_pi)
-print("Residual:", residual)
+print("Structured π ≈", approx_pi)
+print("True π       =", mp.pi)
+print("Residual     =", abs(approx_pi - mp.pi))
