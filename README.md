@@ -23,3 +23,11 @@ mp.dps = 50
 print("Structured π:", pi_structured())
 print("True π:", mp.pi)
 print("Residual:", abs(mp.pi - pi_structured()))
+
+
+MIT License
+
+Copyright (c) 2025 Y.Y.N. Li
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+...
