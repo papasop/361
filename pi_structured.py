@@ -3,79 +3,46 @@ Structured Pi Approximation Module
 Author: Y.Y.N. Li
 Date: 2025-07-14
 
-This module implements a hybrid approximation of π:
-    ρ(n) = Leibniz_sum(n) + φ(n)
+This module approximates π using a structured formula:
+    π ≈ Leibniz(n) + φ(n)
+where:
+    - Leibniz(n): partial sum of the alternating series
+    - φ(n): optional modal correction term (Machin-like)
 
-- The Leibniz sum converges slowly: O(1/n)
-- φ(n) is a fixed modal correction (Machin-like), improving convergence
-
-Residual: δ(n) = |ρ(n) - π| is bounded by O(1/n^α), potentially with ε > 0
+Residual ≈ O(1/n) or better, depending on φ(n).
 """
 
-from mpmath import mp, mpf, atan, fsum
-import numpy as np
+from mpmath import mp, mpf, fsum, atan
 
-# Set high precision
+# Set default decimal precision
 mp.dps = 50
 
-# === φ(n) Modal Residual Generator ===
-
-def generate_phi_modal(n, mode='harmonic', alpha=1.0):
-    """
-    Generate a structural correction φ(n) based on n.
-
-    Parameters:
-        n (int): Number of main series terms.
-        mode (str): Type of modal correction ('harmonic', 'inverse-square', 'trainable').
-        alpha (float): Scaling factor or decay rate.
-
-    Returns:
-        mpf: The structural correction φ(n).
-    """
+# --- Modal correction φ(n) using Machin-like formula ---
+# Default: φ(n) = 4*arctan(1/5) - arctan(1/239)
+def compute_phi():
+    a_k = [4, -1]
+    b_k = [1, 1]
+    c_k = [5, 239]
     phi = mpf(0)
-    if mode == 'harmonic':
-        # φ(n) = Σ (1 / (2k + 1)) / n^α
-        phi = fsum([mpf(1)/(2*k+1) for k in range(1, 6)]) / (n ** alpha)
-    elif mode == 'inverse-square':
-        # φ(n) = Σ (1 / (2k+1)^2) / n^α
-        phi = fsum([mpf(1)/(2*k+1)**2 for k in range(1, 6)]) / (n ** alpha)
-    elif mode == 'trainable':
-        # Placeholder for learning model
-        weights = [mpf(0.8), -0.3, 0.15, -0.08, 0.04]
-        phi = fsum([weights[k] * atan(mpf(1)/(5+2*k)) for k in range(len(weights))])
-        phi /= (n ** alpha)
-    else:
-        raise ValueError("Unsupported mode.")
+    for a, b, c in zip(a_k, b_k, c_k):
+        phi += a * atan(mpf(b) / mpf(c))
     return phi
 
+# --- Leibniz partial sum ---
+def leibniz_sum(n):
+    return fsum([mpf(4) * (-1)**k / (2*k + 1) for k in range(n)])
 
-# === Main Series (Leibniz) + Residual φ(n) ===
+# --- Structured approximation ---
+def pi_structured(n=1000):
+    """
+    Structured approximation of π:
+        ρ(n) = Leibniz(n) + φ
 
-def structured_pi(n, mode='harmonic', alpha=1.0):
-    leibniz = fsum([mpf(4)*(-1)**k / (2*k + 1) for k in range(n)])
-    phi = generate_phi_modal(n, mode=mode, alpha=alpha)
-    return leibniz + phi
+    Parameters:
+        n (int): Number of terms in Leibniz series
 
-
-# === Output Table for Various Modes ===
-
-results = []
-n_values = [10, 100, 500, 1000, 5000, 10000]
-
-for mode in ['harmonic', 'inverse-square', 'trainable']:
-    for n in n_values:
-        approx = structured_pi(n, mode=mode, alpha=1.0)
-        residual = abs(approx - mp.pi)
-        results.append({
-            'n': n,
-            'mode': mode,
-            'structured_pi': approx,
-            'residual': residual
-        })
-
-import pandas as pd
-from ace_tools import display_dataframe_to_user
-
-df = pd.DataFrame(results)
-display_dataframe_to_user("Structured π Approximation with φ(n)", df)
+    Returns:
+        mpf: Approximate value of π
+    """
+    return leibniz_sum(n) + compute_phi()
 
