@@ -3,46 +3,47 @@ Structured Pi Approximation Module
 Author: Y.Y.N. Li
 Date: 2025-07-14
 
-This module computes a hybrid approximation of π using:
-- The Leibniz series (alternating series)
-- A fixed modal correction φ based on the Machin-like formula
+This module implements a hybrid approximation of π:
+    ρ(n) = Leibniz_sum(n) + φ(n)
 
-The goal is to accelerate convergence with minimal error.
+- The Leibniz sum converges slowly: O(1/n)
+- φ(n) is a fixed modal correction (Machin-like), improving convergence
+
+Residual: δ(n) = |ρ(n) - π| is bounded by O(1/n^α), potentially with ε > 0
 """
 
-from mpmath import mp, atan, fsum
+from mpmath import mp, mpf, fsum, atan
 
-# Set default precision
+# Set default precision (50 decimal places)
 mp.dps = 50
 
+# Modal correction φ(n): Machin-like formula
+# π ≈ 4 arctan(1/5) − arctan(1/239)
+a_k = [4, -1]
+b_k = [1, 1]
+c_k = [5, 239]
+
+def compute_phi():
+    """Fixed modal correction φ(n), independent of n"""
+    phi = mpf(0)
+    for j in range(len(a_k)):
+        phi += mpf(a_k[j]) * atan(mpf(b_k[j]) / mpf(c_k[j]))
+    return phi
+
 def leibniz_sum(n):
-    """Compute Leibniz approximation: 4 × Σ (-1)^k / (2k + 1)"""
-    return fsum([mp.mpf(4) * (-1)**k / (2 * k + 1) for k in range(n)])
+    """Compute Leibniz series: 4 * Σ [(-1)^k / (2k+1)]"""
+    return fsum([mpf(4) * (-1)**k / (2 * k + 1) for k in range(n)])
 
-def machin_phi():
-    """Compute φ correction term using Machin-like formula"""
-    return 16 * atan(mp.mpf(1)/5) - 4 * atan(mp.mpf(1)/239)
-
-def pi_structured(n):
+def pi_structured(n=1000):
     """
-    Compute hybrid structured π approximation:
-        π ≈ leibniz_sum(n) + (machin_phi() - leibniz_sum(n_ref))
-    This ensures φ is a correction, not duplication.
+    Compute structured approximation of π:
+        ρ(n) = Leibniz_sum(n) + φ
 
-    Args:
-        n (int): Number of terms for Leibniz series.
+    Parameters:
+        n (int): Number of Leibniz terms
 
     Returns:
-        mpf: Structured π approximation.
+        mpf: Approximation of π
     """
-    n_ref = 100000  # High-precision reference for correction
-    leibniz_n = leibniz_sum(n)
-    leibniz_ref = leibniz_sum(n_ref)
-    phi = machin_phi() - leibniz_ref
-    return leibniz_n + phi
-# Add to end of pi_structured.py
-n_values = [10, 100, 500, 1000, 5000, 10000]
-deltas = [compute_residual(n) for n in n_values]
-C = max(abs(d) * mpf(m) for m, d in zip(n_values, deltas))
-print("\nEstimated C:", C)
+    return leibniz_sum(n) + compute_phi()
 
