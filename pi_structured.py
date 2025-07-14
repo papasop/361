@@ -7,7 +7,7 @@ Implements a hybrid approximation of π using Leibniz series and Machin-like mod
 This module demonstrates the conjecture's numerical verification by computing the approximation, residual, and boundedness.
 """
 
-from mpmath import mp, atan, mpf, pi, fsum, abs
+from mpmath import mp, atan, mpf, pi, fsum
 
 mp.dps = 50  # Set precision for high-accuracy computations
 
@@ -47,6 +47,7 @@ def verify_bound(n_values, deltas):
 
 # Example usage and verification
 if __name__ == "__main__":
+    mp.dps = 50  # Set high precision
     n_values = [10, 100, 500, 1000, 5000, 10000]  # Test n values
 
     print("Structured π Approximation Test (Default Machin-like Coefficients)")
@@ -61,5 +62,3 @@ if __name__ == "__main__":
     # Estimate C for bound |δ(n)| < C / n
     C = verify_bound(n_values, deltas)
     print("\nEstimated C for bound |δ(n)| < C / n:", C)
-
-    # Note: For ε > 0 verification, extend n_values to larger ranges (e.g., 10^6+) and check |δ(n)| * n^(1+ε)
