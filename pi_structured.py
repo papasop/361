@@ -1,57 +1,43 @@
 """
-Structured Pi Approximation Module (Improved Version)
+Structured Pi Approximation Module
 Author: Y.Y.N. Li
 Date: 2025-07-14
 
-This module implements a hybrid approximation of π using:
-- The Leibniz series up to n terms
-- A high-precision Machin-like correction φ(n)
+This module computes a hybrid approximation of π using:
+- The Leibniz series (alternating series)
+- A fixed modal correction φ based on the Machin-like formula
 
-Combined, this yields a more accurate estimate than the Leibniz series alone.
+The goal is to accelerate convergence with minimal error.
 """
 
-from mpmath import mp
+from mpmath import mp, atan, fsum
 
-mp.dps = 50  # Set decimal precision
-
-# Extended Machin-like coefficients for higher accuracy
-# Source: π ≈ 16 arctan(1/5) - 4 arctan(1/239)
-a_k = [16, -4]
-b_k = [1, 1]
-c_k = [5, 239]
-
-def compute_phi():
-    """
-    Compute modal correction φ using extended Machin-like formula.
-    Returns:
-        mpf: φ correction term
-    """
-    phi = mp.mpf(0)
-    for j in range(len(a_k)):
-        phi += mp.mpf(a_k[j]) * mp.atan(mp.mpf(b_k[j]) / mp.mpf(c_k[j]))
-    return phi
+# Set default precision
+mp.dps = 50
 
 def leibniz_sum(n):
-    """
-    Compute 4 × Leibniz series up to n terms.
-    Parameters:
-        n (int): Number of terms
-    Returns:
-        mpf: Approximation from the Leibniz series
-    """
-    return mp.fsum([mp.mpf(4) * (-1)**k / (2 * k + 1) for k in range(n)])
+    """Compute Leibniz approximation: 4 × Σ (-1)^k / (2k + 1)"""
+    return fsum([mp.mpf(4) * (-1)**k / (2 * k + 1) for k in range(n)])
 
-def pi_structured(n=1000):
-    """
-    Compute structured approximation to π using:
-        π ≈ ρ(n) = Leibniz(n) + φ
-    where φ is a fixed modal correction.
+def machin_phi():
+    """Compute φ correction term using Machin-like formula"""
+    return 16 * atan(mp.mpf(1)/5) - 4 * atan(mp.mpf(1)/239)
 
-    Parameters:
-        n (int): Number of Leibniz terms
+def pi_structured(n):
+    """
+    Compute hybrid structured π approximation:
+        π ≈ leibniz_sum(n) + (machin_phi() - leibniz_sum(n_ref))
+    This ensures φ is a correction, not duplication.
+
+    Args:
+        n (int): Number of terms for Leibniz series.
 
     Returns:
-        mpf: Structured approximation to π
+        mpf: Structured π approximation.
     """
-    return leibniz_sum(n) + compute_phi()
+    n_ref = 100000  # High-precision reference for correction
+    leibniz_n = leibniz_sum(n)
+    leibniz_ref = leibniz_sum(n_ref)
+    phi = machin_phi() - leibniz_ref
+    return leibniz_n + phi
 
