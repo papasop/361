@@ -9,21 +9,6 @@ Together, this gives a structured approximation:
 ρ(n) = L_n + \phi
 \]
 
-### Files
-- `pi_structured.py` — defines the function `pi_structured()`
-- `test_pi_structured.py` — tests precision with `mpmath`
-
-### Run the test
-```python
-# test_pi_structured.py
-from pi_structured import pi_structured
-from mpmath import mp
-
-mp.dps = 50
-print("Structured π:", pi_structured())
-print("True π:", mp.pi)
-print("Residual:", abs(mp.pi - pi_structured()))
-
 
 
 
@@ -37,5 +22,6 @@ MIT License
 
 Copyright (c) 2025 Y.Y.N. Li
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-...
+
+Structural Residual Cancellation in π Approximation: A Cubic Convergence via Modal Compensation
+https://doi.org/10.5281/zenodo.15897936
