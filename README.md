@@ -28,10 +28,6 @@ print("Residual:", abs(mp.pi - pi_structured()))
 
 
 
-!git clone https://github.com/papasop/361.git
-%cd 361
-!python3 test_pi_structured.py
-
 
 
 
